@@ -1,0 +1,24 @@
+#BlueJ class context
+#Sat Aug 15 20:54:18 COT 2026
+comment0.target=Robot
+comment0.text=\r\n Write a description of class Robot here.\r\n \r\n @author (your name) \r\n @version (a version number or a date)\r\n
+comment1.params=xInicial yInicial
+comment1.target=Robot(int, int)
+comment1.text=\r\n Constructor de robot, crea  un robot en una posicion x,y\r\n @param x Posici\u00F3n horizontal inicial.\r\n @param y Posici\u00F3n vertical inicial.\r\n
+comment2.target=java.lang.String coordinates()
+comment2.text=\ \r\n Retorna las coordenadas actuales del robot en formato (x,y)\r\n
+comment3.target=char direction()
+comment3.text=\r\n Retorna la direccion hacia la que mira el robot ("N","S","E","W")\r\n @return direction\r\n
+comment4.params=step
+comment4.target=void move(int)
+comment4.text=\r\n Mueve el robot en la direccion hacia la que esta mirando, no acepta valores negativos.\r\n @param step se refiere a la cantidad de px que se movera el robot hacia una direccion dada.\r\n
+comment5.params=newDir
+comment5.target=void turn(char)
+comment5.text=\r\n turn cambia la direccion hacia la que observa el robot, esto a su vez cambia la direccion hacia la que se mueve.\r\n @param direction un char que puede ser 'N','S','E','W'\r\n
+comment6.target=boolean isOK()
+comment6.text=\ \r\n isOk confirma si el ultimo movimiento pudo hacerse o no\r\n @return isMoveOk\r\n
+comment7.target=void makeVisible()
+comment7.text=\r\n Se encarga de hacer visibles al robot en el canva\r\n
+comment8.target=void makeInvisible()
+comment8.text=\r\n Se encarga de hacer invisible al robot en el canva\r\n
+numComments=9
