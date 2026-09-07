@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 /**
- * Simulador de Máquina Tragamonedas (Slot Machine).
+ * Simulador de Máquina Tragamonedas (Slot M    achine).
  * Permite gestionar ruedas, símbolos, giros y representación gráfica en Canvas.
  * 
  * @author De La Peña - Latorre
@@ -11,9 +11,8 @@ import javax.swing.JOptionPane;
  */
 public class SlotMachine {
 
-    private ArrayList<Integer> wheels;
+    private ArrayList<Wheel> wheels;
     private ArrayList<String> symbols;
-    private ArrayList<String> currentSymbols;
     private boolean isVisible;
     private boolean lastOk;
 
@@ -22,32 +21,18 @@ public class SlotMachine {
     private Rectangle screenArea;
     private Rectangle jackpotLight;
     private Triangle roof;
-    private ArrayList<Rectangle> wheelFrames;
-    private ArrayList<Circle> wheelSymbols;
+
 
     public SlotMachine() {
-        String[] colors = {"red","blue","cyan","dark_gray","green","magenta","orange","pink","purple","yellow"};
-        wheels = new ArrayList<Integer>();
+        String[] colors = {"red","blue","green"};
+        wheels = new ArrayList<Wheel>();
         symbols = new ArrayList<String>();
-        currentSymbols = new ArrayList<String>();
-        wheelFrames = new ArrayList<Rectangle>();
-        wheelSymbols = new ArrayList<Circle>();
         isVisible = false;
         lastOk = true;
+        
         for (int i = 0; i < 3; i++) { 
-            wheels.add(i + 1); 
-            currentSymbols.add(colors[i]);
             symbols.add(colors[i]);
-            // Componente grafico de las ruedas
-            Rectangle frame= new Rectangle();
-            frame.changeSize(55,45);
-            frame.changeColor("white");
-            wheelFrames.add(frame); 
-            
-            Circle circle= new Circle();
-            circle.changeSize(28);
-            circle.changeColor(colors[i]);
-            wheelSymbols.add(circle);
+            wheels.add(new Wheel(colors[i]));
         }
         // Componentes graficos
         body = new Rectangle();
@@ -92,19 +77,13 @@ public class SlotMachine {
      */
     public void addWheel(int pos){
         int posi= normalizePosition(pos, wheels.size());
+        Wheel newWheel = new Wheel(symbols.get(0));
+        wheels.add(posi, newWheel);
         
-        wheels.add(posi,wheels.size()+1);
-        currentSymbols.add(posi,symbols.get(0));
-        
-        Rectangle frame = new Rectangle();
-        frame.changeSize(55, 45);
-        frame.changeColor("white");
-        wheelFrames.add(posi, frame);
+        if (isVisible){
+            newWheel.makeVisible();
+        }
 
-        Circle circle = new Circle();
-        circle.changeSize(28);
-        circle.changeColor(currentSymbols.get(posi));
-        wheelSymbols.add(posi, circle);
         
         updateVisualPositions();
         checkJackpot();
@@ -117,7 +96,7 @@ public class SlotMachine {
      * @param pos es un entero que determina la rueda que sera eliminada 1 &le; pos &le; cantidad de ruedas
      */
     public void deleteWheel(int pos){
-        int posi = normalizePosition(pos,wheels.size()+1);
+        
         if (wheels.size()<=2){
             if (isVisible){
                 JOptionPane.showMessageDialog(null,"Ruedas minimas alcanzadas",
@@ -127,16 +106,10 @@ public class SlotMachine {
             lastOk = false;
             return;
         }
-                        
-        wheelFrames.get(posi).makeInvisible();
-        wheelSymbols.get(posi).makeInvisible();
+        int posi = normalizePosition(pos,wheels.size());                
+        Wheel removed = wheels.remove(posi);
+        removed.makeInvisible();
         
-        
-        wheels.remove(posi);
-        currentSymbols.remove(posi);
-        wheelFrames.remove(posi);
-        wheelSymbols.remove(posi);
-            
         updateVisualPositions();
         checkJackpot();
         lastOk=true;            
@@ -182,10 +155,9 @@ public class SlotMachine {
             lastOk = false;
             return;
         }
-        for (int i = 0; i < currentSymbols.size(); i++) {
-            if (currentSymbols.get(i).equalsIgnoreCase(color)) {
-                currentSymbols.set(i, symbols.get(0));
-                wheelSymbols.get(i).changeColor(symbols.get(0));
+        for (Wheel wheel: wheels) {
+            if (wheel.getSymbol().equals(color)) {
+                wheel.setSymbol(symbols.get(0));
             }
         }
         checkJackpot();
@@ -193,27 +165,107 @@ public class SlotMachine {
     }
     
     /**
+     * Intercambia la posicion de dos ruedas.
+     *
+     *@param wheel1 primera rueda
+     * @param wheel2 segunda rueda
+     */
+    public void swap(int wheel1, int wheel2){
+        int pos1 = normalizePosition(wheel1, wheels.size());
+        int pos2 = normalizePosition(wheel2, wheels.size());
+    
+        Wheel temp = wheels.get(pos1);
+        wheels.set(pos1, wheels.get(pos2));
+        wheels.set(pos2, temp);
+    
+        updateVisualPositions();
+    
+        checkJackpot();
+        lastOk = true;
+    }
+    
+    /**
+     * Bloquea una rueda.
+     *
+     * @param wheel rueda a bloquear
+     */
+    public void lock(int wheel){
+        int posi = normalizePosition(wheel, wheels.size());
+    
+        wheels.get(posi).lock();
+    
+        lastOk = true;
+    }
+    
+    /**
+     * Desbloquea una rueda.
+     *
+     * @param wheel rueda a desbloquear
+     */
+    public void unlock(int wheel){
+        int posi = normalizePosition(wheel, wheels.size());
+    
+        wheels.get(posi).unlock();
+    
+        lastOk = true;
+    }
+    
+    /**
+     * Coloca directamente un simbolo en una rueda dada.
+     *
+     * @param wheel rueda objetivo
+     * @param symbol simbolo a colocar
+     */
+    public void placeSymbol(int wheel, String symbol){
+        int posi = normalizePosition(wheel, wheels.size());
+    
+        symbol = symbol.toLowerCase();
+    
+        if (!symbols.contains(symbol)){
+            lastOk = false;
+            return;
+        }
+    
+        Wheel target = wheels.get(posi);
+    
+        if (target.isLocked()){
+            lastOk = false;
+            return;
+        }
+    
+        target.setSymbol(symbol);
+    
+        checkJackpot();
+        lastOk = true;
+    }
+    
+    
+    
+    /**
      * Gira una rueda en especifico de la maquina una vez
      * @Param se refiere a la rueda que sera movida una vez
      */
-    public void spin(int wheel){
-        if (wheels.size()==0){
-            if (isVisible==true){
-            JOptionPane.showMessageDialog(null,
-            "no se ha iniciado la tragaperras",
-            "Advertencia",
-            JOptionPane.WARNING_MESSAGE);
+    public void spin(int wheel) {
+        if (wheels.isEmpty() || symbols.isEmpty()) {
             lastOk = false;
             return;
-            }
         }
-        int posi= normalizePosition(wheel, wheels.size()-1);
-        int posCurrentSymbol = symbols.indexOf(currentSymbols.get(posi));
-        int posNextCurrentSymbol = (posCurrentSymbol + 1) %  symbols.size();
-        currentSymbols.set(posi, symbols.get(posNextCurrentSymbol));
-        wheelSymbols.get(posi).changeColor(currentSymbols.get(posi));
+        int posi = normalizePosition(wheel, wheels.size());
+        Wheel targetWheel = wheels.get(posi);
+        
+        //CAMBIO CICLO 2 para no girar las ruedas bloqueadas
+        if(targetWheel.isLocked()){
+            lastOk = false;
+            return;
+        }
+        
+        int currentIndex = symbols.indexOf(targetWheel.getSymbol());
+        int nextIndex = (currentIndex + 1) % symbols.size();
+        
+        targetWheel.setSymbol(symbols.get(nextIndex));
         checkJackpot();
-    }
+        lastOk = true;
+    }    
     
     /**
      * Gira todas las ruedas una vez
@@ -223,6 +275,78 @@ public class SlotMachine {
             spin(i);
         }
     }
+    
+    /**
+     * Gira una rueda una cantidad determinada de pasos.
+     *
+     * @param wheel rueda a girar
+     * @param steps cantidad de pasos
+     */
+    public void spin(int wheel, int steps){
+    
+        int posi = normalizePosition(wheel, wheels.size());
+    
+        Wheel target = wheels.get(posi);
+
+        if (target.isLocked()){
+            lastOk = false;
+            return;
+        }
+    
+        for(int i = 0; i < steps; i++){
+    
+            spin(wheel);
+    
+            if(isVisible){
+                Canvas.getCanvas().wait(100);
+            }
+        }
+    
+        lastOk = true;
+    }
+    
+    /**
+     * Lleva la maquina a una configuracion dada.
+     *
+     * @param configuration configuracion deseada
+     */
+    public void spin(String[] configuration){
+    
+        if(configuration.length != wheels.size()){
+            lastOk = false;
+            return;
+        }
+    
+        for(int i = 0; i < wheels.size(); i++){
+    
+            Wheel current = wheels.get(i);
+    
+            if(current.isLocked()){
+                continue;
+            }
+    
+            String desired = configuration[i].toLowerCase();
+    
+            if(!symbols.contains(desired)){
+                lastOk = false;
+                return;
+            }
+    
+            while(!current.getSymbol().equals(desired)){
+    
+                spin(i + 1);
+    
+                if(isVisible){
+                    Canvas.getCanvas().wait(100);
+                }
+            }
+        }
+    
+        checkJackpot();
+    
+        lastOk = true;
+    }
+    
     
     /**
      * Retorna los símbolos disponibles en la máquina.
@@ -241,11 +365,11 @@ public class SlotMachine {
     public int distinctSymbols(){
         ArrayList<String> distinct = new ArrayList<String>();
     
-            for(String symbol : currentSymbols){
-                if(!distinct.contains(symbol)){
-                    distinct.add(symbol);
-                }
+        for(Wheel wheel: wheels){
+            if(!distinct.contains(wheel.getSymbol())){
+                distinct.add(wheel.getSymbol());
             }
+        }
 
         return distinct.size();
     }
@@ -256,7 +380,11 @@ public class SlotMachine {
      * @return símbolos mostrados por cada rueda.
      */
     public ArrayList<String> configuration(){
-        return new ArrayList<String>(currentSymbols);
+        ArrayList<String> config = new ArrayList<String>();
+        for (Wheel wheel: wheels){
+            config.add(wheel.getSymbol());
+        }
+        return config;
     }
     
     /**
@@ -264,8 +392,8 @@ public class SlotMachine {
      * @return isJackpot, True si todas las posiciones poseen el mismo simbolo, False si una o mas posiciones poseen simbolos distintos
      */
     public boolean isJackpot(){
-        if (currentSymbols.isEmpty()== true){
-            if (isVisible==true){
+        if (wheels.isEmpty()){
+            if (isVisible){
                 JOptionPane.showMessageDialog(null,
                 "no se ha iniciado la tragaperras",
                 "Advertencia",
@@ -274,12 +402,12 @@ public class SlotMachine {
                 return false;
             }
         }else{
-            // Corrección:
-            for (int i = 1; i < currentSymbols.size(); i++) {
-                if (!currentSymbols.get(i).equals(currentSymbols.get(0))) {
+            String first = wheels.get(0).getSymbol();
+            for(Wheel wheel : wheels){
+                if (!wheel.getSymbol().equals(first)){
                     return false;
                 }
-        }
+            }
         }
         return true;
         
@@ -295,9 +423,8 @@ public class SlotMachine {
         jackpotLight.makeVisible();
         roof.makeVisible();
 
-        for (int i = 0; i < wheels.size(); i++) {
-            wheelFrames.get(i).makeVisible();
-            wheelSymbols.get(i).makeVisible();
+        for (Wheel wheel:wheels) {
+            wheel.makeVisible();
         }
         checkJackpot();
         lastOk = true;
@@ -314,9 +441,8 @@ public class SlotMachine {
         jackpotLight.makeInvisible();
         roof.makeInvisible();
     
-        for(int i = 0; i < wheels.size(); i++){
-            wheelFrames.get(i).makeInvisible();
-            wheelSymbols.get(i).makeInvisible();
+        for(Wheel wheel:wheels){
+            wheel.makeInvisible();    
         }
     
         lastOk = true;
@@ -345,8 +471,8 @@ public class SlotMachine {
      */
     private void updateVisualPositions() {
         int total = wheels.size();
-        if (total == 0){ 
-            return;
+        if (total == 0){
+            return;    
         }
 
         int areaStartX = 60;
@@ -355,33 +481,18 @@ public class SlotMachine {
 
         for (int i = 0; i < total; i++) {
             int frameWidth = Math.min(40, spacing - 4);
-        int frameHeight = 50;
+            int frameHeight = 50;
+            int frameX = areaStartX + (i * spacing) + ((spacing - frameWidth) / 2);
+            int frameY = 120;
+            int circleSize = Math.min(24, frameWidth - 6);
 
-        // Coordenada X e Y absolutas para centrar cada marco dentro de screenArea
-        int frameX = areaStartX + (i * spacing) + ((spacing - frameWidth) / 2);
-        int frameY = 120; // Y = 120 mantiene el marco centrado verticalmente en la pantalla (Y: 110 a 180)
-
-        // 1. Mover y redimensionar el marco blanco existente
-        Rectangle frame = wheelFrames.get(i);
-        frame.changeSize(frameHeight, frameWidth);
-        frame.moveTo(frameX, frameY);
-
-        // 2. Mover y redimensionar el círculo (diámetro adaptado al marco)
-        int circleSize = Math.min(24, frameWidth - 6);
-        int circleX = frameX + (frameWidth - circleSize) / 2;
-        int circleY = frameY + (frameHeight - circleSize) / 2;
-
-        Circle circle = wheelSymbols.get(i);
-        circle.changeSize(circleSize);
-        circle.moveTo(circleX, circleY);
-        circle.changeColor(currentSymbols.get(i));
-        if (isVisible==true) {
-            frame.makeVisible();
-            circle.makeVisible();
+            Wheel wheel = wheels.get(i);
+            wheel.relocate(frameX, frameY, frameWidth, frameHeight, circleSize);
+            if (isVisible) {
+                wheel.makeVisible();
+            }
         }
-    }
-}
-    
+    }    
     public boolean ok() {
         return lastOk;
     }
