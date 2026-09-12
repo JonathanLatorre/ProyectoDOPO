@@ -1,0 +1,5 @@
+1. Arreglar diagrama de clases (relaciones, atributos relacionados, y quitar original de shapes)
+2. Corregir diagrama de secuencias (revisar todos los diagramas y que esten de acuerdo a el codigo)
+3. Añadir diagrama de secuancias (nuevos metodos de el ciclo 2)
+4. Corregir codigo (Swap y Lock, verificar posibles bugs probando, e implementar testers)
+5. Añadir clase (Añadir clase de "Symbol", y hacer los respectivos cambios, si se piensa en otra clase mas, mejor)
