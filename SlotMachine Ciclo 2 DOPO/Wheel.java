@@ -8,10 +8,10 @@ public class Wheel {
         this.locked = false;
         
         this.frame = new Rectangle();
-        this.frame.changeSize(55, 45);
+        this.frame.changeSize(160, 100);
         this.frame.changeColor("white");
 
-        this.symbol = new Symbol(initialSymbol, 28);
+        this.symbol = new Symbol(initialSymbol, 90);
     }
 
     public String getSymbol() {

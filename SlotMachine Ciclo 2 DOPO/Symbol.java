@@ -129,4 +129,15 @@ public class Symbol {
     public String toString() {
         return this.color;
     }
+    public static class ExtendedColor extends Color {
+        public static final ExtendedColor purple = new ExtendedColor(75,0,122);
+        public static final ExtendedColor darkGreen = new ExtendedColor(0,100,0);
+        public static final ExtendedColor darkRed = new ExtendedColor(139,0,0);
+        public static final ExtendedColor darkBlue = new ExtendedColor(0,0,139);
+        public static final ExtendedColor brown = new ExtendedColor(89,62,0);
+        public static final ExtendedColor orange = new ExtendedColor(180,0,0);
+        public ExtendedColor(int r, int g, int b) {
+        super(r, g, b);
+    }
+    }
 }

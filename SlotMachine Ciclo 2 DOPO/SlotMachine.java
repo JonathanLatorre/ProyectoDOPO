@@ -34,31 +34,58 @@ public class SlotMachine {
             symbols.add(colors[i]);
             wheels.add(new Wheel(colors[i]));
         }
-        // Componentes graficos
+        setupVisualComponents();
+        updateVisualPositions();
+    }
+    /**
+     * Constructor de la maquina con n ruedas e simbolos
+     * @param n cantidad de ruedas e simbolos, la cantidad de simbolos debe ser menor o igual 15 y mayor a 1
+     */
+    public SlotMachine(int n){
+        if (n < 1 || n > 15){
+            JOptionPane.showMessageDialog(null, "Cantidad de ruedas e simbolos no valida", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String[] colors = {"red","blue","green","yellow","magenta","orange","pink","purple","black","cyan","gray", "brown", "darkGreen", "darkRed", "darkBlue"};
+        wheels = new ArrayList<Wheel>();
+        symbols = new ArrayList<String>();
+        isVisible = false;
+        lastOk = true;
+        
+        
+
+        for (int i = 0; i < n; i++) { 
+            symbols.add(colors[i]);
+            wheels.add(new Wheel(colors[i]));
+        }
+
+        setupVisualComponents();
+        updateVisualPositions();
+    }
+
+    /**
+     * Crea el gabinete, la pantalla y el techo a una escala pensada para un canvas de 900x600.
+     */
+    private void setupVisualComponents() {
         body = new Rectangle();
-        body.changeSize(120, 220);
+        body.changeSize(400, 740);
         body.changeColor("black");
-        body.moveHorizontal(-50);
-        body.moveVertical(40);
+        body.moveTo(80, 155);
 
         screenArea = new Rectangle();
-        screenArea.changeSize(70, 200);
+        screenArea.changeSize(280, 700);
         screenArea.changeColor("yellow");
-        screenArea.moveHorizontal(-40);
-        screenArea.moveVertical(70);
+        screenArea.moveTo(100, 250);
 
         jackpotLight = new Rectangle();
-        jackpotLight.changeSize(15, 60);
+        jackpotLight.changeSize(40, 200);
         jackpotLight.changeColor("red");
-        jackpotLight.moveHorizontal(30);
-        jackpotLight.moveVertical(45);
+        jackpotLight.moveTo(350, 175);
 
         roof = new Triangle();
-        roof.changeSize(30, 100);
+        roof.changeSize(110, 320);
         roof.changeColor("red");
-        roof.moveTo(60, 25);
-        
-        updateVisualPositions();
+        roof.moveTo(450, 50);
     }
     
     private int normalizePosition(int pos,int max){
@@ -118,9 +145,14 @@ public class SlotMachine {
     /**
      * Añade un símbolo a la paleta disponible.
      * @param pos posicion en la que se colocara el nuevo simbolo, su rango es 1 &le; pos &le; cantidad de ruedas
-     * @param color el color que se desea para el nuevo simbolo, tiene que ser: "red","blue","cyan","dark_gray","green","magenta","orange","pink","purple","yellow". No pueden repetirse colores
+     * @param color el color que se desea para el nuevo simbolo, tiene que ser: "red","blue","green","yellow","magenta","orange","pink","purple","black","cyan","gray", "brown", "darkGreen", "darkRed", "darkBlue". No pueden repetirse colores
      */
     public void addSymbol(int pos, String color) {
+        if (symbols.size() > 15){
+            JOptionPane.showMessageDialog(null, "Cantidad de simbolos maximos alcanzados", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            lastOk = false;
+            return;
+        }
         if (color == null || color.isEmpty()) {
             lastOk = false;
             return;
@@ -475,16 +507,16 @@ public class SlotMachine {
             return;    
         }
 
-        int areaStartX = 60;
-        int usableWidth = 180;
+        int areaStartX = 120;
+        int usableWidth = 660;
         int spacing = usableWidth / total;
 
         for (int i = 0; i < total; i++) {
-            int frameWidth = Math.min(40, spacing - 4);
-            int frameHeight = 50;
+            int frameWidth = Math.min(100, spacing - 12);
+            int frameHeight = 160;
             int frameX = areaStartX + (i * spacing) + ((spacing - frameWidth) / 2);
-            int frameY = 120;
-            int circleSize = Math.min(24, frameWidth - 6);
+            int frameY = 310;
+            int circleSize = Math.min(90, frameWidth - 16);
 
             Wheel wheel = wheels.get(i);
             wheel.relocate(frameX, frameY, frameWidth, frameHeight, circleSize);
