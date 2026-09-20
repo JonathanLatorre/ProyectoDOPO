@@ -41,10 +41,9 @@ public class SlotMachine {
      * Constructor de la maquina con n ruedas e simbolos
      * @param n cantidad de ruedas e simbolos, la cantidad de simbolos debe ser menor o igual 15 y mayor a 1
      */
-    public SlotMachine(int n){
+    public SlotMachine(int n) throws Exceptions.InvalidSymbolsQuantException{
         if (n < 1 || n > 15){
-            JOptionPane.showMessageDialog(null, "Cantidad de ruedas e simbolos no valida", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
+            throw new Exceptions.InvalidSymbolsQuantException("No puedes tener mas de 15 simbolos ni menos que 2.");
         }
         String[] colors = {"red","blue","green","yellow","magenta","orange","pink","purple","black","cyan","gray", "brown", "darkGreen", "darkRed", "darkBlue"};
         wheels = new ArrayList<Wheel>();
@@ -528,4 +527,5 @@ public class SlotMachine {
     public boolean ok() {
         return lastOk;
     }
+    
 }
