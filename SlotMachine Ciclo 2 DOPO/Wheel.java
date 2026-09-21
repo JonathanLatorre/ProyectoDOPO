@@ -1,48 +1,27 @@
-
-/**
- * Write a description of class Wheel here.
- * 
- * @author DeLaPeña-Latorre 
- * @version 1.0
- */
-public class Wheel
-{
+public class Wheel {
     
     private Rectangle frame;
-    private Circle symbol;
-    private String currentSymbol;
+    private Symbol symbol;
     private boolean locked;
 
     public Wheel(String initialSymbol) {
-        this.currentSymbol = initialSymbol;
-        locked = false;
+        this.locked = false;
         
-        frame = new Rectangle();
-        frame.changeSize(55, 45);
-        frame.changeColor("white");
+        this.frame = new Rectangle();
+        this.frame.changeSize(160, 100);
+        this.frame.changeColor("white");
 
-        symbol = new Circle();
-        symbol.changeSize(28);
-        symbol.changeColor(initialSymbol);
+        this.symbol = new Symbol(initialSymbol, 90);
     }
-    /**
-     * Return the symbol of a given wheel
-     * @return currentSymbol currentSymbol of the given wheel
-     */
-    public String getSymbol(){
-        return currentSymbol;
+
+    public String getSymbol() {
+        return symbol.getColor();
     }
-    /**
-     * Changes the currentSymbol of a wheel
-     * @param newColor it's the new symbol that the wheel is gonna have.
-     */
-    public void setSymbol(String newColor){
-        this.currentSymbol = newColor;
-        symbol.changeColor(newColor);
+
+    public void setSymbol(String newColor) {
+        symbol.setColor(newColor);
     }
-    /**
-     * Resize and relocates the frame and cirlce to an available space.
-     */
+
     public void relocate(int x, int y, int frameWidth, int frameHeight, int circleSize) {
         frame.changeSize(frameHeight, frameWidth);
         frame.moveTo(x, y);
@@ -57,32 +36,19 @@ public class Wheel
         frame.makeVisible();
         symbol.makeVisible();
     }
-    public void makeInvisible(){
+
+    public void makeInvisible() {
         frame.makeInvisible();
         symbol.makeInvisible();
     }
     
-    /**
-     * Bloquea una rueda para evitar modificaciones.
-     */
-    public void lock(){
-        locked = true;
+    public void lock() {
+         locked = true; 
     }
-
-    /**
-     * Desbloquea una rueda.
-     */
-    public void unlock(){
-        locked = false;
+    public void unlock() {
+    locked = false; 
     }
-
-    /**
-     * Informa si la rueda se encuentra bloqueada.
-     *
-     * @return true si esta bloqueada.
-     */
-    public boolean isLocked(){
-        return locked;
+    public boolean isLocked() {
+    return locked; 
     }
-
 }
