@@ -1,7 +1,6 @@
-import javax.swing.*; 
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
-
+import java.util.Random;
 /**
  * Simulador de Máquina Tragamonedas (Slot M    achine).
  * Permite gestionar ruedas, símbolos, giros y representación gráfica en Canvas.
@@ -42,7 +41,7 @@ public class SlotMachine {
      * @param n cantidad de ruedas e simbolos, la cantidad de simbolos debe ser menor o igual 15 y mayor a 1
      */
     public SlotMachine(int n) throws Exceptions.InvalidSymbolsQuantException{
-        if (n < 1 || n > 15){
+        if (n < 2 || n >= 15){
             throw new Exceptions.InvalidSymbolsQuantException("No puedes tener mas de 15 simbolos ni menos que 2.");
         }
         String[] colors = {"red","blue","green","yellow","magenta","orange","pink","purple","black","cyan","gray", "brown", "darkGreen", "darkRed", "darkBlue"};
@@ -51,11 +50,13 @@ public class SlotMachine {
         isVisible = false;
         lastOk = true;
         
-        
-
-        for (int i = 0; i < n; i++) { 
+        for (int i= 0; i< n; i++){
             symbols.add(colors[i]);
-            wheels.add(new Wheel(colors[i]));
+        }
+        Random rand = new Random();
+        for (int i = 0; i < n; i++) { 
+            String randomSymbol = symbols.get(rand.nextInt(n));
+            wheels.add(new Wheel(randomSymbol));
         }
 
         setupVisualComponents();
