@@ -31,7 +31,7 @@ public class SlotMachine {
         
         for (int i = 0; i < 3; i++) { 
             symbols.add(colors[i]);
-            wheels.add(new Wheel(colors[i]));
+            wheels.add(new normalWheel(colors[i]));
         }
         setupVisualComponents();
         updateVisualPositions();
@@ -56,7 +56,7 @@ public class SlotMachine {
         Random rand = new Random();
         for (int i = 0; i < n; i++) { 
             String randomSymbol = symbols.get(rand.nextInt(n));
-            wheels.add(new Wheel(randomSymbol));
+            wheels.add(new normalWheel(randomSymbol));
         }
 
         setupVisualComponents();
@@ -104,7 +104,7 @@ public class SlotMachine {
      */
     public void addWheel(int pos){
         int posi= normalizePosition(pos, wheels.size());
-        Wheel newWheel = new Wheel(symbols.get(0));
+        Wheel newWheel = new normalWheel(symbols.get(0));
         wheels.add(posi, newWheel);
         
         if (isVisible){
@@ -116,7 +116,38 @@ public class SlotMachine {
         checkJackpot();
         lastOk = true;
     }
-
+    /**
+     * adds a wheel given its type and position. if the wheel is normal, it's frame is white, if it's rebel its frame is yellow and if it's lefty it's frame is blue
+     * @param type it can be normal(usual wheels), rebel(you can't delete, swap or lock it) and lefty(copies the symbol of the wheel at his left).
+     * @param pos an integer that determines the position of wheel
+     */
+    public void addWheel(String type, int pos){
+        int posi= normalizePosition(pos, wheels.size());
+        String trueType= type.trim().toLowerCase();
+        if(trueType == "normal"){
+            Wheel newWheel = new normalWheel(symbols.get(0));
+            wheels.add(posi, newWheel);
+            if (isVisible){
+                newWheel.makeVisible();
+            }
+        }else if (trueType=="rebel"){
+            Wheel newWheel = new rebelWheel(symbols.get(0));
+            wheels.add(posi,newWheel);
+            if (isVisible){
+                newWheel.makeVisible();
+            }
+        }else if (trueType=="lefty"){
+            Wheel newWheel= new leftyWheel(symbols.get(0));
+            wheels.add(posi, newWheel);
+            if (isVisible){
+                newWheel.makeVisible();
+            }
+        }
+        updateVisualPositions();
+        checkJackpot();
+        lastOk = true;
+        
+    }
     /**
      * Elimina una rueda en una posicion en especifico
      * 
@@ -133,7 +164,12 @@ public class SlotMachine {
             lastOk = false;
             return;
         }
-        int posi = normalizePosition(pos,wheels.size());                
+        int posi = normalizePosition(pos,wheels.size());
+        Wheel check = wheels.get(posi);
+        if(check instanceof rebelWheel){
+            lastOk = false;
+            return;
+        }               
         Wheel removed = wheels.remove(posi);
         removed.makeInvisible();
         
@@ -206,9 +242,14 @@ public class SlotMachine {
         int pos1 = normalizePosition(wheel1, wheels.size());
         int pos2 = normalizePosition(wheel2, wheels.size());
     
-        Wheel temp = wheels.get(pos1);
-        wheels.set(pos1, wheels.get(pos2));
-        wheels.set(pos2, temp);
+        Wheel w1 = wheels.get(pos1);
+        Wheel w2 = wheels.get(pos2);
+        if (w1.isLocked() || w1 instanceof rebelWheel || w2 instanceof rebelWheel || w2.isLocked()){
+            lastOk=false;
+            return;
+        }
+        wheels.set(pos1, w2);
+        wheels.set(pos2, w1);
     
         updateVisualPositions();
     
@@ -302,8 +343,8 @@ public class SlotMachine {
     /**
      * Gira todas las ruedas una vez
      */
-    public void spin(){
-        for (int i=1 ;i <wheels.size();i++){
+    public void spin() {
+        for (int i = 1; i <= wheels.size(); i++) {
             spin(i);
         }
     }
@@ -507,24 +548,34 @@ public class SlotMachine {
             return;    
         }
 
+        for (int i = 0; i < total; i++) {
+            Wheel current = wheels.get(i);
+            
+            if (current instanceof leftyWheel) {
+                int leftIndex = (i - 1 + total) % total; 
+                Wheel left = wheels.get(leftIndex);
+                
+                ((leftyWheel) current).setLefty(left);
+            }
+        }
         int areaStartX = 120;
         int usableWidth = 660;
         int spacing = usableWidth / total;
 
-        for (int i = 0; i < total; i++) {
+        for (int j = 0; j < total; j++) {
             int frameWidth = Math.min(100, spacing - 12);
             int frameHeight = 160;
-            int frameX = areaStartX + (i * spacing) + ((spacing - frameWidth) / 2);
+            int frameX = areaStartX + (j * spacing) + ((spacing - frameWidth) / 2);
             int frameY = 310;
             int circleSize = Math.min(90, frameWidth - 16);
 
-            Wheel wheel = wheels.get(i);
+            Wheel wheel = wheels.get(j);
             wheel.relocate(frameX, frameY, frameWidth, frameHeight, circleSize);
             if (isVisible) {
                 wheel.makeVisible();
             }
         }
-    }    
+    }
     public boolean ok() {
         return lastOk;
     }
