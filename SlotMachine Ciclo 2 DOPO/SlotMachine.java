@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import java.util.Random;
+import java.util.HashMap;
 /**
  * Simulador de Máquina Tragamonedas (Slot M    achine).
  * Permite gestionar ruedas, símbolos, giros y representación gráfica en Canvas.
@@ -12,6 +13,7 @@ public class SlotMachine {
 
     private ArrayList<Wheel> wheels;
     private ArrayList<String> symbols;
+    private HashMap<String, String> symbolTypes;
     private boolean isVisible;
     private boolean lastOk;
 
@@ -23,7 +25,8 @@ public class SlotMachine {
 
 
     public SlotMachine() {
-        String[] colors = {"red","blue","green"};
+        String[] colors = {"red", "blue", "green"};
+        symbolTypes = new HashMap<String, String>();
         wheels = new ArrayList<Wheel>();
         symbols = new ArrayList<String>();
         isVisible = false;
@@ -31,7 +34,12 @@ public class SlotMachine {
         
         for (int i = 0; i < 3; i++) { 
             symbols.add(colors[i]);
-            wheels.add(new Wheel(colors[i]));
+            symbolTypes.put(colors[i], "normal");
+            
+            // Usamos constructor original + setSymbol con la instancia polimórfica
+            Wheel w = new normalWheel(colors[i]);
+            w.setSymbol(createSymbolInstance(colors[i], 90));
+            wheels.add(w);
         }
         setupVisualComponents();
         updateVisualPositions();
@@ -47,6 +55,7 @@ public class SlotMachine {
         String[] colors = {"red","blue","green","yellow","magenta","orange","pink","purple","black","cyan","gray", "brown", "darkGreen", "darkRed", "darkBlue"};
         wheels = new ArrayList<Wheel>();
         symbols = new ArrayList<String>();
+        symbolTypes = new HashMap<String, String>();
         isVisible = false;
         lastOk = true;
         
@@ -56,7 +65,7 @@ public class SlotMachine {
         Random rand = new Random();
         for (int i = 0; i < n; i++) { 
             String randomSymbol = symbols.get(rand.nextInt(n));
-            wheels.add(new Wheel(randomSymbol));
+            wheels.add(new normalWheel(randomSymbol));
         }
 
         setupVisualComponents();
@@ -104,7 +113,7 @@ public class SlotMachine {
      */
     public void addWheel(int pos){
         int posi= normalizePosition(pos, wheels.size());
-        Wheel newWheel = new Wheel(symbols.get(0));
+        Wheel newWheel = new normalWheel(symbols.get(0));
         wheels.add(posi, newWheel);
         
         if (isVisible){
@@ -116,7 +125,38 @@ public class SlotMachine {
         checkJackpot();
         lastOk = true;
     }
-
+    /**
+     * adds a wheel given its type and position. if the wheel is normal, it's frame is white, if it's rebel its frame is yellow and if it's lefty it's frame is blue
+     * @param type it can be normal(usual wheels), rebel(you can't delete, swap or lock it) and lefty(copies the symbol of the wheel at his left).
+     * @param pos an integer that determines the position of wheel
+     */
+    public void addWheel(String type, int pos){
+        int posi= normalizePosition(pos, wheels.size());
+        String trueType= type.trim().toLowerCase();
+        if(trueType.equals("normal")){
+            Wheel newWheel = new normalWheel(symbols.get(0));
+            wheels.add(posi, newWheel);
+            if (isVisible){
+                newWheel.makeVisible();
+            }
+        }else if (trueType.equals("rebel")){
+            Wheel newWheel = new rebelWheel(symbols.get(0));
+            wheels.add(posi,newWheel);
+            if (isVisible){
+                newWheel.makeVisible();
+            }
+        }else if (trueType.equals("lefty")){
+            Wheel newWheel= new leftyWheel(symbols.get(0));
+            wheels.add(posi, newWheel);
+            if (isVisible){
+                newWheel.makeVisible();
+            }
+        }
+        updateVisualPositions();
+        checkJackpot();
+        lastOk = true;
+        
+    }
     /**
      * Elimina una rueda en una posicion en especifico
      * 
@@ -133,7 +173,12 @@ public class SlotMachine {
             lastOk = false;
             return;
         }
-        int posi = normalizePosition(pos,wheels.size());                
+        int posi = normalizePosition(pos,wheels.size());
+        Wheel check = wheels.get(posi);
+        if(check instanceof rebelWheel){
+            lastOk = false;
+            return;
+        }               
         Wheel removed = wheels.remove(posi);
         removed.makeInvisible();
         
@@ -159,12 +204,56 @@ public class SlotMachine {
         }
         int posi = normalizePosition(pos, symbols.size());
         String formatColor= color.toLowerCase().trim();
+        
         if (symbols.contains(formatColor)){
             lastOk = false;
             return;
         }
         symbols.add(posi, formatColor);
         lastOk = true;
+    }
+    /**
+     * Añade un símbolo a la paleta disponible.
+     * @param pos posicion en la que se colocara el nuevo simbolo, su rango es 1 &le; pos &le; cantidad de ruedas
+     * @param color el color que se desea para el nuevo simbolo, tiene que ser: "red","blue","green","yellow","magenta","orange","pink","purple","black","cyan","gray", "brown", "darkGreen", "darkRed", "darkBlue". No pueden repetirse colores
+     * @param type define que tipo de simbolo es, puede ser normal(no posee ninguna modificacion), shy(siempre que es seleccionado varia entre ser visible e invisible) o ephemeral(al girar su tamaño decrece hasta ser un punto)
+     */
+
+/**
+ * Adds a symbol with a specific behavior type ("normal", "shy", "ephemeral").
+ */
+public void addSymbol(int pos, String color, String type) {
+    if (symbols.size() >= 15) {
+        if (isVisible) {
+            JOptionPane.showMessageDialog(null, "Cantidad de simbolos maximos alcanzados", "Advertencia", JOptionPane.WARNING_MESSAGE);
+        }
+        lastOk = false;
+        return;
+    }
+    if (color == null || color.trim().isEmpty() || type == null) {
+        lastOk = false;
+        return;
+    }
+
+    String formatColor = color.toLowerCase().trim();
+    String trueType = type.toLowerCase().trim();
+    
+
+    if (!trueType.equals("normal") && !trueType.equals("shy") && !trueType.equals("ephemeral")) {
+        lastOk = false;
+        return;
+    }
+
+    if (symbols.contains(formatColor)) {
+        lastOk = false;
+        return;
+    }
+
+    int posi = normalizePosition(pos, symbols.size());
+    symbols.add(posi, formatColor);
+    symbolTypes.put(formatColor, trueType);
+
+    lastOk = true;
     }
     
     /**
@@ -206,9 +295,14 @@ public class SlotMachine {
         int pos1 = normalizePosition(wheel1, wheels.size());
         int pos2 = normalizePosition(wheel2, wheels.size());
     
-        Wheel temp = wheels.get(pos1);
-        wheels.set(pos1, wheels.get(pos2));
-        wheels.set(pos2, temp);
+        Wheel w1 = wheels.get(pos1);
+        Wheel w2 = wheels.get(pos2);
+        if (w1.isLocked() || w1 instanceof rebelWheel || w2 instanceof rebelWheel || w2.isLocked()){
+            lastOk=false;
+            return;
+        }
+        wheels.set(pos1, w2);
+        wheels.set(pos2, w1);
     
         updateVisualPositions();
     
@@ -264,9 +358,8 @@ public class SlotMachine {
             lastOk = false;
             return;
         }
-    
-        target.setSymbol(symbol);
-    
+        Symbol newSymbol = createSymbolInstance(symbol, 90);
+        target.setSymbol(newSymbol);
         checkJackpot();
         lastOk = true;
     }
@@ -285,25 +378,34 @@ public class SlotMachine {
         int posi = normalizePosition(wheel, wheels.size());
         Wheel targetWheel = wheels.get(posi);
         
-        //CAMBIO CICLO 2 para no girar las ruedas bloqueadas
-        if(targetWheel.isLocked()){
+        if (targetWheel.isLocked()) {
             lastOk = false;
             return;
         }
         
+
         int currentIndex = symbols.indexOf(targetWheel.getSymbol());
         int nextIndex = (currentIndex + 1) % symbols.size();
-        
-        targetWheel.setSymbol(symbols.get(nextIndex));
+        String nextColor = symbols.get(nextIndex);
+    
+ 
+        Symbol newSymbol = createSymbolInstance(nextColor, 90);
+    
+        if (newSymbol instanceof ephemeralSymbol) {
+            ((ephemeralSymbol) newSymbol).shrink();
+        }
+    
+        targetWheel.setSymbol(newSymbol);
+    
         checkJackpot();
         lastOk = true;
-    }    
+    }  
     
     /**
      * Gira todas las ruedas una vez
      */
-    public void spin(){
-        for (int i=1 ;i <wheels.size();i++){
+    public void spin() {
+        for (int i = 1; i <= wheels.size(); i++) {
             spin(i);
         }
     }
@@ -507,26 +609,51 @@ public class SlotMachine {
             return;    
         }
 
+        for (int i = 0; i < total; i++) {
+            Wheel current = wheels.get(i);
+            
+            if (current instanceof leftyWheel) {
+                int leftIndex = (i - 1 + total) % total; 
+                Wheel left = wheels.get(leftIndex);
+                
+                ((leftyWheel) current).setLefty(left);
+            }
+        }
         int areaStartX = 120;
         int usableWidth = 660;
         int spacing = usableWidth / total;
 
-        for (int i = 0; i < total; i++) {
+        for (int j = 0; j < total; j++) {
             int frameWidth = Math.min(100, spacing - 12);
             int frameHeight = 160;
-            int frameX = areaStartX + (i * spacing) + ((spacing - frameWidth) / 2);
+            int frameX = areaStartX + (j * spacing) + ((spacing - frameWidth) / 2);
             int frameY = 310;
             int circleSize = Math.min(90, frameWidth - 16);
 
-            Wheel wheel = wheels.get(i);
+            Wheel wheel = wheels.get(j);
             wheel.relocate(frameX, frameY, frameWidth, frameHeight, circleSize);
             if (isVisible) {
                 wheel.makeVisible();
             }
         }
-    }    
+    }
     public boolean ok() {
         return lastOk;
     }
     
+    private Symbol createSymbolInstance(String color, int size) {
+        String type = symbolTypes.get(color.toLowerCase());
+        if (type == null) {
+            type = "normal";
+        }else{
+            type = type.toLowerCase();
+        }
+        if ("shy".equals(type)) {
+            return new shySymbol(color, size);
+        } else if ("ephemeral".equals(type)) {
+            return new ephemeralSymbol(color, size);
+        } else {
+            return new normalSymbol(color, size);
+        }
+    }
 }

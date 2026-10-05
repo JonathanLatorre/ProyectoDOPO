@@ -44,7 +44,6 @@ public class SlotMachineContest {
 
         ArrayList<int[]> actions = new ArrayList<int[]>();
 
-        // Fase 1: Alineación de cada rueda individualmente
         for (int wheel = 1; wheel <= n; wheel++) {
             int best = machine.distinctSymbols();
             int bestOffset = 0;
@@ -64,7 +63,6 @@ public class SlotMachineContest {
             }
         }
 
-        // Fase 2: Sincronización con la rueda 1
         machine.spin(1, 1);
         actions.add(new int[]{1, 1});
 
@@ -108,13 +106,11 @@ public class SlotMachineContest {
             return;
         }
 
-        // Ejecuta solve de forma invisible para calcular las acciones
         int[][] actions = solve(n);
         if (actions.length == 0 || machine == null) {
             return;
         }
 
-        // Rebobina la máquina a su estado inicial antes de hacerla visible
         for (int k = actions.length - 1; k >= 0; k--) {
             int stepsBack = (n - (actions[k][1] % n)) % n;
             if (stepsBack > 0) {
@@ -122,10 +118,8 @@ public class SlotMachineContest {
             }
         }
 
-        // Hace visible la máquina en el Canvas
         machine.makeVisible();
 
-        // Ejecuta y anima los giros optimizados por rueda
         int k = 0;
         while (k < actions.length) {
             int wheel = actions[k][0];
@@ -134,7 +128,7 @@ public class SlotMachineContest {
                 total += actions[k][1];
                 k++;
             }
-            total = (total % n + n) % n; // Asegura giros positivos válidos para SlotMachine
+            total = (total % n + n) % n; 
             if (total != 0) {
                 machine.spin(wheel, total);
             }

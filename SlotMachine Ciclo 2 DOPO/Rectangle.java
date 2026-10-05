@@ -193,5 +193,8 @@ public class Rectangle{
         yPosition = newY;
         draw();
     }
+    public boolean isVisible(){
+        return isVisible;
+    }
 }
 
