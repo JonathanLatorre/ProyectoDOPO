@@ -7,14 +7,14 @@ import java.awt.*;
  * @author De La Peña - Latorre
  * @version 1.0 (2026)
  */
-public class Symbol {
+public abstract class Symbol {
     
-    private String color;
-    private Circle shape;
-    private int size;
-    private int xPosition;
-    private int yPosition;
-    private boolean isVisible;
+    public String color;
+    public Circle shape;
+    public int size;
+    public int xPosition;
+    public int yPosition;
+    public boolean isVisible;
 
     /**
      * Crea un nuevo símbolo a partir de un color especificado.
@@ -43,7 +43,7 @@ public class Symbol {
      * Obtiene el color/nombre asociado a este símbolo.
      * @return el identificador del color en minúsculas.
      */
-    public String getColor() {
+    public final String getColor() {
         return color;
     }
 
@@ -62,12 +62,7 @@ public class Symbol {
      * Cambia el tamaño del símbolo en la pantalla.
      * @param newSize nuevo diámetro en píxeles.
      */
-    public void changeSize(int newSize) {
-        if (newSize >= 0) {
-            this.size = newSize;
-            this.shape.changeSize(newSize);
-        }
-    }
+    public abstract void changeSize(int newSize);
 
     /**
      * Reubica el símbolo en unas coordenadas específicas.
@@ -138,6 +133,9 @@ public class Symbol {
         public static final ExtendedColor orange = new ExtendedColor(180,0,0);
         public ExtendedColor(int r, int g, int b) {
         super(r, g, b);
+        }
     }
+    public final int getSize(){
+        return size;
     }
 }

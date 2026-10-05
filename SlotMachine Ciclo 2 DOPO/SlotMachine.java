@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import java.util.Random;
+import java.util.HashMap;
 /**
  * Simulador de Máquina Tragamonedas (Slot M    achine).
  * Permite gestionar ruedas, símbolos, giros y representación gráfica en Canvas.
@@ -12,6 +13,7 @@ public class SlotMachine {
 
     private ArrayList<Wheel> wheels;
     private ArrayList<String> symbols;
+    private HashMap<String, String> symbolTypes;
     private boolean isVisible;
     private boolean lastOk;
 
@@ -23,7 +25,8 @@ public class SlotMachine {
 
 
     public SlotMachine() {
-        String[] colors = {"red","blue","green"};
+        String[] colors = {"red", "blue", "green"};
+        symbolTypes = new HashMap<String, String>();
         wheels = new ArrayList<Wheel>();
         symbols = new ArrayList<String>();
         isVisible = false;
@@ -31,7 +34,12 @@ public class SlotMachine {
         
         for (int i = 0; i < 3; i++) { 
             symbols.add(colors[i]);
-            wheels.add(new normalWheel(colors[i]));
+            symbolTypes.put(colors[i], "normal");
+            
+            // Usamos constructor original + setSymbol con la instancia polimórfica
+            Wheel w = new normalWheel(colors[i]);
+            w.setSymbol(createSymbolInstance(colors[i], 90));
+            wheels.add(w);
         }
         setupVisualComponents();
         updateVisualPositions();
@@ -47,6 +55,7 @@ public class SlotMachine {
         String[] colors = {"red","blue","green","yellow","magenta","orange","pink","purple","black","cyan","gray", "brown", "darkGreen", "darkRed", "darkBlue"};
         wheels = new ArrayList<Wheel>();
         symbols = new ArrayList<String>();
+        symbolTypes = new HashMap<String, String>();
         isVisible = false;
         lastOk = true;
         
@@ -124,19 +133,19 @@ public class SlotMachine {
     public void addWheel(String type, int pos){
         int posi= normalizePosition(pos, wheels.size());
         String trueType= type.trim().toLowerCase();
-        if(trueType == "normal"){
+        if(trueType.equals("normal")){
             Wheel newWheel = new normalWheel(symbols.get(0));
             wheels.add(posi, newWheel);
             if (isVisible){
                 newWheel.makeVisible();
             }
-        }else if (trueType=="rebel"){
+        }else if (trueType.equals("rebel")){
             Wheel newWheel = new rebelWheel(symbols.get(0));
             wheels.add(posi,newWheel);
             if (isVisible){
                 newWheel.makeVisible();
             }
-        }else if (trueType=="lefty"){
+        }else if (trueType.equals("lefty")){
             Wheel newWheel= new leftyWheel(symbols.get(0));
             wheels.add(posi, newWheel);
             if (isVisible){
@@ -195,12 +204,56 @@ public class SlotMachine {
         }
         int posi = normalizePosition(pos, symbols.size());
         String formatColor= color.toLowerCase().trim();
+        
         if (symbols.contains(formatColor)){
             lastOk = false;
             return;
         }
         symbols.add(posi, formatColor);
         lastOk = true;
+    }
+    /**
+     * Añade un símbolo a la paleta disponible.
+     * @param pos posicion en la que se colocara el nuevo simbolo, su rango es 1 &le; pos &le; cantidad de ruedas
+     * @param color el color que se desea para el nuevo simbolo, tiene que ser: "red","blue","green","yellow","magenta","orange","pink","purple","black","cyan","gray", "brown", "darkGreen", "darkRed", "darkBlue". No pueden repetirse colores
+     * @param type define que tipo de simbolo es, puede ser normal(no posee ninguna modificacion), shy(siempre que es seleccionado varia entre ser visible e invisible) o ephemeral(al girar su tamaño decrece hasta ser un punto)
+     */
+
+/**
+ * Adds a symbol with a specific behavior type ("normal", "shy", "ephemeral").
+ */
+public void addSymbol(int pos, String color, String type) {
+    if (symbols.size() >= 15) {
+        if (isVisible) {
+            JOptionPane.showMessageDialog(null, "Cantidad de simbolos maximos alcanzados", "Advertencia", JOptionPane.WARNING_MESSAGE);
+        }
+        lastOk = false;
+        return;
+    }
+    if (color == null || color.trim().isEmpty() || type == null) {
+        lastOk = false;
+        return;
+    }
+
+    String formatColor = color.toLowerCase().trim();
+    String trueType = type.toLowerCase().trim();
+    
+
+    if (!trueType.equals("normal") && !trueType.equals("shy") && !trueType.equals("ephemeral")) {
+        lastOk = false;
+        return;
+    }
+
+    if (symbols.contains(formatColor)) {
+        lastOk = false;
+        return;
+    }
+
+    int posi = normalizePosition(pos, symbols.size());
+    symbols.add(posi, formatColor);
+    symbolTypes.put(formatColor, trueType);
+
+    lastOk = true;
     }
     
     /**
@@ -305,9 +358,8 @@ public class SlotMachine {
             lastOk = false;
             return;
         }
-    
-        target.setSymbol(symbol);
-    
+        Symbol newSymbol = createSymbolInstance(symbol, 90);
+        target.setSymbol(newSymbol);
         checkJackpot();
         lastOk = true;
     }
@@ -326,19 +378,28 @@ public class SlotMachine {
         int posi = normalizePosition(wheel, wheels.size());
         Wheel targetWheel = wheels.get(posi);
         
-        //CAMBIO CICLO 2 para no girar las ruedas bloqueadas
-        if(targetWheel.isLocked()){
+        if (targetWheel.isLocked()) {
             lastOk = false;
             return;
         }
         
+
         int currentIndex = symbols.indexOf(targetWheel.getSymbol());
         int nextIndex = (currentIndex + 1) % symbols.size();
-        
-        targetWheel.setSymbol(symbols.get(nextIndex));
+        String nextColor = symbols.get(nextIndex);
+    
+ 
+        Symbol newSymbol = createSymbolInstance(nextColor, 90);
+    
+        if (newSymbol instanceof ephemeralSymbol) {
+            ((ephemeralSymbol) newSymbol).shrink();
+        }
+    
+        targetWheel.setSymbol(newSymbol);
+    
         checkJackpot();
         lastOk = true;
-    }    
+    }  
     
     /**
      * Gira todas las ruedas una vez
@@ -580,4 +641,19 @@ public class SlotMachine {
         return lastOk;
     }
     
+    private Symbol createSymbolInstance(String color, int size) {
+        String type = symbolTypes.get(color.toLowerCase());
+        if (type == null) {
+            type = "normal";
+        }else{
+            type = type.toLowerCase();
+        }
+        if ("shy".equals(type)) {
+            return new shySymbol(color, size);
+        } else if ("ephemeral".equals(type)) {
+            return new ephemeralSymbol(color, size);
+        } else {
+            return new normalSymbol(color, size);
+        }
+    }
 }
