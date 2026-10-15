@@ -391,8 +391,12 @@ public void addSymbol(int pos, String color, String type) {
             
             if (sticky.isStuck()) {
                 sticky.unstick();
+<<<<<<< HEAD:SlotMachine Ciclo 4 DOPO/SlotMachine.java
                 checkJackpot();
                 lastOk = true;
+=======
+                checkJackpot();lastOk = true;
+>>>>>>> ffa2f92865a8f5eba3c787c17ffa65a678e82519:SlotMachine Ciclo 2 DOPO/SlotMachine.java
                 return;
             }
         }
