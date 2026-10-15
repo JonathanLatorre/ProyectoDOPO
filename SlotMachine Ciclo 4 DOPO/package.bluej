@@ -77,6 +77,15 @@ dependency8.type=UsesDependency
 dependency9.from=SlotMachineContest
 dependency9.to=SlotMachine
 dependency9.type=UsesDependency
+<<<<<<< HEAD:SlotMachine Ciclo 4 DOPO/package.bluej
+editor.fx.0.height=0
+editor.fx.0.width=0
+editor.fx.0.x=0
+editor.fx.0.y=0
+objectbench.height=86
+objectbench.width=801
+package.divider.horizontal=0.600297176820208
+=======
 editor.fx.0.height=784
 editor.fx.0.width=1382
 editor.fx.0.x=-8
@@ -84,6 +93,7 @@ editor.fx.0.y=-8
 objectbench.height=86
 objectbench.width=802
 package.divider.horizontal=0.6010401188707281
+>>>>>>> ffa2f92865a8f5eba3c787c17ffa65a678e82519:SlotMachine Ciclo 2 DOPO/package.bluej
 package.divider.vertical=0.8640350877192983
 package.editor.height=584
 package.editor.width=1213
